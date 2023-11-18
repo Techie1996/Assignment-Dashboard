@@ -16,25 +16,26 @@ const App = () => {
     setTasks(updatedTasks);
   };
 
-  const handleTaskUpdated = (updatedTask) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
-    );
-  };
+const handleTaskUpdated = (updatedTask) => {
+  setTasks((prevTasks) =>
+    prevTasks.map((task) => (task._id === updatedTask?._id ? updatedTask : task))
+  );
+};
+
 
 
 
     const handleTaskStatusChanged = (taskId) => {
-    // Find the task with the given taskId
+    // Finds the task with the given taskId
     const updatedTasks = tasks.map((task) => {
-      if (task.id === taskId) {
-        // Toggle the status (assuming your status is either 'Completed' or 'Not Completed')
+      if (task._id === taskId) {
+        // Toggles the status (assuming your status is either 'Completed' or 'Not Completed')
         task.status = task.status === 'Completed' ? 'Not Completed' : 'Completed';
       }
       return task;
     });
 
-    // Update the state with the modified tasks
+    // Updates the state with the modified tasks
     setTasks(updatedTasks);
 
     console.log(`Task status changed for task with ID ${taskId}`);
@@ -44,12 +45,12 @@ const App = () => {
       <Routes>
         <Route
           path="/"
-          element={<TaskListing tasks={tasks} onTaskCreated={handleTaskCreated} onTaskDeleted={handleTaskDeleted} onTaskStatusChanged={handleTaskStatusChanged}/>}
+          element={<TaskListing tasks={tasks} setTasks={setTasks} onTaskCreated={handleTaskCreated} onTaskDeleted={handleTaskDeleted} onTaskStatusChanged={handleTaskStatusChanged} />}
         />
         <Route path="/taskCreation" element={<TaskCreation onTaskCreated={handleTaskCreated} />} />
         <Route
           path="/taskEditing/:taskId"
-          element={<TaskEditing onTaskUpdated={handleTaskUpdated} tasks={tasks} />}
+          element={<TaskEditing onTaskUpdated={handleTaskUpdated} tasks={tasks} setTasks={setTasks}/>}
         />
       </Routes>
     </Router>

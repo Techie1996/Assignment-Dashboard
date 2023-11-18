@@ -1,12 +1,27 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TaskListing = ({ tasks, onNewTask, onTaskCreated, onTaskDeleted, onTaskStatusChanged }) => {
+const TaskListing = ({ tasks, setTasks, onNewTask, onTaskCreated, onTaskDeleted, onTaskStatusChanged }) => {
   console.log('Rendering TaskListing component');
 
   useEffect(() => {
+    fetch('http://localhost:5000/tasks')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('Fetched tasks:', data);
+        setTasks(data);
+      })
+      .catch((error) => console.error('Error fetching tasks:', error));
+  }, [setTasks]); // Including setTasks in the dependency array
+
+  useEffect(() => {
     console.log('Tasks updated:', tasks);
-  }, [tasks]); // Add a useEffect to log when tasks are updated
+  }, [tasks]); 
 
   const navigate = useNavigate();
 
@@ -20,16 +35,25 @@ const TaskListing = ({ tasks, onNewTask, onTaskCreated, onTaskDeleted, onTaskSta
     navigate('/taskCreation');
   };
 
-  const handleDelete = (taskId) => {
-    console.log(`Deleting task with ID ${taskId}`);
-    // Filter out the task to be deleted
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    // Update the state with the remaining tasks
-    onTaskDeleted(updatedTasks);
-  };
+const handleDelete = async (taskId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/tasks/${taskId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete task');
+    }
+
+    onTaskDeleted(tasks.filter((task) => task._id !== taskId));
+  } catch (error) {
+    console.error('Error deleting task:', error);
+  }
+};
+
 
   const handleToggleStatus = (taskId) => {
-    // Call the function to toggle the status
+    // Calling the function to toggle the status
     onTaskStatusChanged(taskId);
   };
 
@@ -43,7 +67,7 @@ const TaskListing = ({ tasks, onNewTask, onTaskCreated, onTaskDeleted, onTaskSta
       </div>
       <div className="task-list">
         {tasks.map((task) => (
-          <div key={task.id} className={`task-card ${task.status ? task.status.toLowerCase().replace(" ", "") : ''}`}>
+          <div key={task._id} className={`task-card ${task.status ? task.status.toLowerCase().replace(" ", "") : ''}`}>
             <div className="task-details">
               <h3>{task.title}</h3>
               <p>{task.description}</p>
@@ -52,15 +76,15 @@ const TaskListing = ({ tasks, onNewTask, onTaskCreated, onTaskDeleted, onTaskSta
               </p>
             </div>
             <div className="task-actions">
-              <button className='create-task-btns' onClick={() => handleEdit(task.id)}>
-                Edit
+              <button className='create-task-btns' onClick={() => handleEdit(task._id)}>
+                Edit  
               </button>
-              <button className='create-task-btns' onClick={() => handleDelete(task.id)}>
+              <button className='create-task-btns' onClick={() => handleDelete(task._id)}>
                 Delete
               </button>
               <h3>Status</h3>
               <label>:</label>
-              <div className={`status-indicator ${task.status ? task.status.toLowerCase().replace(" ", "") : ''}`} onClick={() => handleToggleStatus(task.id)}></div>
+              <div className={`status-indicator ${task.status ? task.status.toLowerCase().replace(" ", "") : ''}`} onClick={() => handleToggleStatus(task._id)}></div>
               {console.log('Rendering task:', task)}
             </div>
           </div>
